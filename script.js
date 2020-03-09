@@ -3,19 +3,21 @@ const maxCanvasWidth = 600;
 const maxCanvasHeight = 600;
 let ctx;
 
-let speed = 0;
+let speed = 1;
 let mass = 10;
 let playerOne;
 let playerTwo;
 let platform;
-const players = new Array();
+let players = new Array();
 
 let up = false;
 let down = false;
 let right = false;
 let left = false;
 
-let accelerationTimer = setInterval(acceleration, 1000);
+//let accelerationTimer = setInterval(acceleration, 1000);
+
+let startTime = new Date();
 
 addEventListener("keydown", function(event){
   if(event.keyCode == 87){
@@ -56,59 +58,104 @@ function startGame(){
   canvasCreation.innerHTML = "<canvas id='canvas' width='600' height='600' style='border: 3px solid black;'></canvas>";
   canvas = document.getElementById('canvas');
   ctx = canvas.getContext("2d");
-  platform = new Player(maxCanvasWidth / 2, maxCanvasHeight / 2, 250, "black", 0, 0);
   players.push(new Player(maxCanvasWidth / 4, maxCanvasHeight / 2, 50, "red", speed, mass));
-  players.push(new Player(maxCanvasWidth / 2, maxCanvasHeight / 4, 50, "yellow", speed, mass));
-  /*players.push(new Player(maxCanvasWidth / 1.3, maxCanvasHeight / 2, 50, "green"));
-  players.push(new Player(maxCanvasWidth / 2, maxCanvasHeight / 1.3, 50, "blue"));*/
+  players.push(new Enemy(maxCanvasWidth / 2, maxCanvasHeight / 4, 50, "yellow", speed, mass));
+  players.push(new Enemy(maxCanvasWidth / 1.3, maxCanvasHeight / 2, 50, "green", speed, mass));
+  players.push(new Enemy(maxCanvasWidth / 2, maxCanvasHeight / 1.3, 50, "blue", speed, mass));
+  platform = new Player(maxCanvasWidth / 2, maxCanvasHeight / 2, 250, "black", 0, 0);
+
 }
 
 function movement(){
-  if(up){
-    players[0].y -= accelerationTimer;
-    console.log(speed);
-  }
-  if(down){
-    players[0].y += acceleration();
-  }
-  if(left){
-    players[0].x -= acceleration();
-  }
-  if(right){
-    players[0].x += acceleration();
-  }
-}
+   if(up){
+     players[0].y -= speed;
+   }
+   if(down){
+     players[0].y += acceleration();
+   }
+   if(left){
+     players[0].x -= acceleration();
+   }
+   if(right){
+     players[0].x += acceleration();
+   }
+ }
 
-function acceleration(){
-  if(speed <= 10) return speed++;
-  else return speed;
-}
-/*
-function createPlayers(){
+ function acceleration(){
+   if(speed <= 10) return speed++;
+   else return speed;
+ }
 
-
-  return players;
-}*/
 function animate(){
   requestAnimationFrame(animate);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  platform.update();
+  platform.draw();
   for(let i = 0; i < players.length; i++){
-    players[i].update();
+    players[i].update(players);
   }
   movement();
+}
+
+function getTime(){
+  return (new Date() - startTime) / 1000;
 }
 
 function Player(x, y, radius, color, speed, mass){
   this.x = x;
   this.y = y;
+  this.velocity = {
+    x: speed / getTime(),
+    y: speed / getTime()
+  };
   this.speed = speed;
   this.mass = mass;
   this.radius = radius;
   this.color = color;
-
-  this.update = function(){
+  this.update = players => {
     this.draw();
+
+    for(let i = 0; i < players.length; i++){
+      if(this === players[i]) continue;
+      if(getDistance(this.x, this.y, players[i].x, players[i].y) - this.radius * 2 < 0){
+        console.log(this.velocity, players[i].velocity);
+        push(this, players[i]);
+        console.log("collided");
+      }
+    }
+  };
+  this.draw = function(){
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.closePath();
+  };
+}
+
+function Enemy(x, y, radius, color, speed, mass){
+  this.x = x;
+  this.y = y;
+  this.velocity = {
+    x: Math.random() - 0.5,
+    y: Math.random() - 0.5
+  };
+  this.speed = speed;
+  this.mass = mass;
+  this.radius = radius;
+  this.color = color;
+  this.update = players => {
+    this.draw();
+
+    for(let i = 0; i < players.length; i++){
+      if(this === players[i]) continue;
+      if(getDistance(this.x, this.y, players[i].x, players[i].y) - this.radius * 2 < 0){
+        console.log(this.velocity, players[i].velocity);
+        push(this, players[i]);
+        console.log("collided");
+      }
+      this.x += this.velocity.x;
+      this.y += this.velocity.y;
+    }
   };
   this.draw = function(){
     ctx.fillStyle = this.color;
@@ -135,14 +182,16 @@ function getDistance(x1, y1, x2, y2){
 
 //Function that rotates the objects so the velocity is in a single dimension
 function rotateVelocity(velocity, angle){
-  return rotatedVelocity  = {
+  const rotatedVelocity  = {
     x: velocity.x * Math.cos(angle) - velocity.y * Math.sin(angle),
-    y: velocity.x * Math.sin(angle) - velocity.y * Math.cos(angle)
+    y: velocity.x * Math.sin(angle) + velocity.y * Math.cos(angle)
   };
+
+  return rotatedVelocity;
 }
 
 //Swap the velocity of the 2 objects colliding and runs through the Elastic Collision equation
-function Push(player, collidedPlayer) {
+function push(player, collidedPlayer) {
   const xVelocityDifference = player.velocity.x - collidedPlayer.velocity.x;
   const yVelocityDifference = player.velocity.y - collidedPlayer.velocity.y;
 
