@@ -7,7 +7,6 @@ let speed = 1;
 let mass = 10;
 let playerOne;
 let playerTwo;
-let platform;
 let players = new Array();
 
 let up = false;
@@ -58,12 +57,11 @@ function startGame(){
   canvasCreation.innerHTML = "<canvas id='canvas' width='600' height='600' style='border: 3px solid black;'></canvas>";
   canvas = document.getElementById('canvas');
   ctx = canvas.getContext("2d");
-  players.push(new Player(maxCanvasWidth / 4, maxCanvasHeight / 2, 50, "red", speed, mass));
-  players.push(new Enemy(maxCanvasWidth / 2, maxCanvasHeight / 4, 50, "yellow", speed, mass));
-  players.push(new Enemy(maxCanvasWidth / 1.3, maxCanvasHeight / 2, 50, "green", speed, mass));
-  players.push(new Enemy(maxCanvasWidth / 2, maxCanvasHeight / 1.3, 50, "blue", speed, mass));
-  platform = new Player(maxCanvasWidth / 2, maxCanvasHeight / 2, 250, "black", 0, 0);
-
+  platform(maxCanvasWidth / 2, maxCanvasHeight / 2, 250, "black");
+  players.push(new Player(maxCanvasWidth / 4, maxCanvasHeight / 2, 50, "red", speed, mass, true));
+  players.push(new Player(maxCanvasWidth / 2, maxCanvasHeight / 4, 50, "yellow", speed, mass, false));
+  players.push(new Player(maxCanvasWidth / 1.3, maxCanvasHeight / 2, 50, "green", speed, mass, false));
+  players.push(new Player(maxCanvasWidth / 2, maxCanvasHeight / 1.3, 50, "blue", speed, mass, false));
 }
 
 function movement(){
@@ -89,7 +87,7 @@ function movement(){
 function animate(){
   requestAnimationFrame(animate);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  platform.draw();
+  platform(maxCanvasWidth / 2, maxCanvasHeight / 2, 250, "black");
   for(let i = 0; i < players.length; i++){
     players[i].update(players);
   }
@@ -100,13 +98,21 @@ function getTime(){
   return (new Date() - startTime) / 1000;
 }
 
-function Player(x, y, radius, color, speed, mass){
+function Player(x, y, radius, color, speed, mass, player){
   this.x = x;
   this.y = y;
-  this.velocity = {
-    x: speed / getTime(),
-    y: speed / getTime()
-  };
+  if(player){
+    this.velocity = {
+      x: speed / getTime(),
+      y: speed / getTime()
+    };
+  }
+  else{
+    this.velocity = {
+      x: Math.random() - 0.5,
+      y: Math.random() - 0.5
+    };
+  }
   this.speed = speed;
   this.mass = mass;
   this.radius = radius;
@@ -117,9 +123,11 @@ function Player(x, y, radius, color, speed, mass){
     for(let i = 0; i < players.length; i++){
       if(this === players[i]) continue;
       if(getDistance(this.x, this.y, players[i].x, players[i].y) - this.radius * 2 < 0){
-        console.log(this.velocity, players[i].velocity);
         push(this, players[i]);
-        console.log("collided");
+      }
+      if(!player){
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
       }
     }
   };
@@ -132,39 +140,14 @@ function Player(x, y, radius, color, speed, mass){
   };
 }
 
-function Enemy(x, y, radius, color, speed, mass){
-  this.x = x;
-  this.y = y;
-  this.velocity = {
-    x: Math.random() - 0.5,
-    y: Math.random() - 0.5
-  };
-  this.speed = speed;
-  this.mass = mass;
-  this.radius = radius;
-  this.color = color;
-  this.update = players => {
-    this.draw();
-
-    for(let i = 0; i < players.length; i++){
-      if(this === players[i]) continue;
-      if(getDistance(this.x, this.y, players[i].x, players[i].y) - this.radius * 2 < 0){
-        console.log(this.velocity, players[i].velocity);
-        push(this, players[i]);
-        console.log("collided");
-      }
-      this.x += this.velocity.x;
-      this.y += this.velocity.y;
-    }
-  };
-  this.draw = function(){
-    ctx.fillStyle = this.color;
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.closePath();
-  };
+function platform(x, y, radius, color){
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, 2 * Math.PI);
+  ctx.fill();
+  ctx.closePath();
 }
+
 //Collision detection
 
 //Detects when two objects collide using the Pythagorean Theorem
