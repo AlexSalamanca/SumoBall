@@ -8,6 +8,7 @@ let mass = 10;
 let playerOne;
 let playerTwo;
 let players = new Array();
+let platform;
 
 let up = false;
 let down = false;
@@ -57,7 +58,7 @@ function startGame(){
   canvasCreation.innerHTML = "<canvas id='canvas' width='600' height='600' style='border: 3px solid black;'></canvas>";
   canvas = document.getElementById('canvas');
   ctx = canvas.getContext("2d");
-  platform(maxCanvasWidth / 2, maxCanvasHeight / 2, 250, "black");
+  platform = new Platform(maxCanvasWidth / 2, maxCanvasHeight / 2, 250, "black");
   players.push(new Player(maxCanvasWidth / 4, maxCanvasHeight / 2, 50, "red", speed, mass, true));
   players.push(new Player(maxCanvasWidth / 2, maxCanvasHeight / 4, 50, "yellow", speed, mass, false));
   players.push(new Player(maxCanvasWidth / 1.3, maxCanvasHeight / 2, 50, "green", speed, mass, false));
@@ -87,7 +88,7 @@ function movement(){
 function animate(){
   requestAnimationFrame(animate);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  platform(maxCanvasWidth / 2, maxCanvasHeight / 2, 250, "black");
+  platform.update();
   for(let i = 0; i < players.length; i++){
     players[i].update(players);
   }
@@ -124,6 +125,8 @@ function Player(x, y, radius, color, speed, mass, player){
       if(this === players[i]) continue;
       if(getDistance(this.x, this.y, players[i].x, players[i].y) - this.radius * 2 < 0){
         push(this, players[i]);
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
       }
       if(!player){
         this.x += this.velocity.x;
@@ -140,12 +143,14 @@ function Player(x, y, radius, color, speed, mass, player){
   };
 }
 
-function platform(x, y, radius, color){
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(x, y, radius, 0, 2 * Math.PI);
-  ctx.fill();
-  ctx.closePath();
+function Platform(x, y, radius, color){
+  this.update = function(){
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.closePath();
+  }
 }
 
 //Collision detection
