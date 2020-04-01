@@ -12,13 +12,15 @@ let player1;
 let platformObj;
 let winner = false;
 
+let audio = new Audio("Sounds/bounce.wav");
+let mute = false;
+
 function startGame(){
   button = document.getElementById('startButton');
   let canvasCreation = document.getElementById("canvasCall");
-  button.style.visibility = "hidden";
   canvasCreation.innerHTML = "<canvas id='canvas' width=800 height=800wd style='border: 3px solid black;'></canvas>";
   canvas = document.getElementById('canvas');
-  canvas.style.marginLeft = "200px";
+  canvas.style.backgroundColor = "#CF1020"
   ctx = canvas.getContext("2d");
   while(players.length > 0){
     players.splice(0, 1);
@@ -72,6 +74,7 @@ function Player(x, y, radius, color, speed, mass, player, name){
 
       if(getDistance(this.x, this.y, players[i].x, players[i].y) - this.radius * 2 <= 0){
         push(this, players[i]);
+        if(!mute) audio.play();
       }
     }
 
@@ -169,11 +172,19 @@ function checkWinner(){
   }
   if(players.length == 1){
     winner = true;
-    button.style.visibility = "visible"
     canvas.style.backgroundColor = players[0].color;
     platformObj.color = players[0].color;
     ctx.fillStyle = "#337CA0";
     ctx.font = "50px Arial";
     ctx.fillText(" The winner is " + players[0].name, 75, 300);
+  }
+}
+
+function toogleMute(){
+  if(!mute){
+    mute = true;
+  }
+  else{
+    mute = false;
   }
 }

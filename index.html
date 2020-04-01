@@ -5,12 +5,46 @@
     <title>Sumo Ball</title>
     <script type="text/javascript" src="script.js"></script>
     <script type="text/javascript" src="utility.js"></script>
-    
+    <style>
+      @font-face {
+        font-family: "Sketch 3D";
+        src: url(Fonts/Sketch3D.otf);
+      }
+      body{
+        background-color: #d2b48c;
+        font-family: "Sketch 3D";
+      }
+      h1{
+        text-align: center;
+        font-size: 4em;
+      }
+      #canvasStyle{
+        width: 40%;
+        margin: auto;
+      }
+
+      #canvasStyle button{
+        height: 100px;
+        width: 200px;
+        box-shadow: 2px 2px 2px 2px black;
+        font-family: "Sketch 3D";
+        font-size: 3em;
+        text-align: center;
+        margin-left: 15%;
+        display: inline-block;
+      }
+      #canvasStyle button:hover{
+        background-color: #5DC1B9;
+      }
+    </style>
   </head>
   <body>
     <h1>Welcome to SUMO BALL</h1>
-    <button type="button" name="button" onclick="startGame();" id="startButton">Start</button>
-    <pre id="canvasCall"></pre>
+    <div id="canvasStyle">
+      <button type="button" name="button" onclick="startGame();" id="startButton">Start</button>
+      <button type="button" name="button" onclick="toogleMute();" id="muteButton">Mute</button>
+      <pre id="canvasCall"></pre>
+    </div>
 
   </body>
 </html>
