@@ -1,98 +1,97 @@
-let canvas
-const maxCanvasWidth = 600;
-const maxCanvasHeight = 600;
+let canvas;
+let button;
+const maxCanvasWidth = 800;
+const maxCanvasHeight = 800;
 let ctx;
 
 let speed = 0;
 let mass = 10;
 let players = new Array();
-<<<<<<< HEAD
-let platform;
-
-=======
 let player1;
->>>>>>> 44f231f2e66c28f2a740477aa93517f3f22cea47
-let up = false;
-let down = false;
-let right = false;
-let left = false;
 
-//let accelerationTimer = setInterval(acceleration, 1000);
-
-
-
+let platformObj;
+let winner = false;
 
 function startGame(){
-  let button = document.getElementById('startButton');
+  button = document.getElementById('startButton');
   let canvasCreation = document.getElementById("canvasCall");
-  button.remove();
-  canvasCreation.innerHTML = "<canvas id='canvas' width='600' height='600' style='border: 3px solid black;'></canvas>";
+  button.style.visibility = "hidden";
+  canvasCreation.innerHTML = "<canvas id='canvas' width=800 height=800wd style='border: 3px solid black;'></canvas>";
   canvas = document.getElementById('canvas');
+  canvas.style.marginLeft = "200px";
   ctx = canvas.getContext("2d");
-<<<<<<< HEAD
-  platform = new Platform(maxCanvasWidth / 2, maxCanvasHeight / 2, 250, "black");
-  players.push(new Player(maxCanvasWidth / 4, maxCanvasHeight / 2, 50, "red", speed, mass, true));
-=======
-  platform(maxCanvasWidth / 2, maxCanvasHeight / 2, 250, "black");
-  players.push(player1 = new Player(maxCanvasWidth / 4, maxCanvasHeight / 2, 50, "red", speed, mass, true));
->>>>>>> 44f231f2e66c28f2a740477aa93517f3f22cea47
-  players.push(new Player(maxCanvasWidth / 2, maxCanvasHeight / 4, 50, "yellow", speed, mass, false));
-  players.push(new Player(maxCanvasWidth / 1.3, maxCanvasHeight / 2, 50, "green", speed, mass, false));
-  players.push(new Player(maxCanvasWidth / 2, maxCanvasHeight / 1.3, 50, "blue", speed, mass, false));
+  while(players.length > 0){
+    players.splice(0, 1);
+  }
+  platformObj = new Platform(maxCanvasWidth / 2, maxCanvasHeight / 2, maxCanvasWidth / 3, "black");
+  players.push(player1 = new Player(maxCanvasWidth / 4, maxCanvasHeight / 2, 50, "red", speed, mass, true, "red"));
+  players.push(new Player(maxCanvasWidth / 2, maxCanvasHeight / 4, 50, "yellow", speed, mass, false, "yellow"));
+  players.push(new Player(maxCanvasWidth / 1.3, maxCanvasHeight / 2, 50, "green", speed, mass, false, "green"));
+  players.push(new Player(maxCanvasWidth / 2, maxCanvasHeight / 1.3, 50, "blue", speed, mass, false, "blue"));
+  animate();
 }
 
 function animate(){
   requestAnimationFrame(animate);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-<<<<<<< HEAD
-  platform.update();
-=======
-  platform(maxCanvasWidth / 2, maxCanvasHeight / 2, 250, "black");
+  if(!winner){
+    platformObj.draw();
+    player1.newPosition();
+    for(let i = 0; i < players.length; i++){
+      players[i].update(players);
+    }
 
->>>>>>> 44f231f2e66c28f2a740477aa93517f3f22cea47
-  for(let i = 0; i < players.length; i++){
-    players[i].update(players);
   }
-  player1.newPosition();
+  checkWinner();
 }
 
-function Player(x, y, radius, color, speed, mass, player){
+function Player(x, y, radius, color, speed, mass, player, name){
   this.x = x;
   this.y = y;
   this.angle = 0;
   this.rotationAngle = 0;
-  if(player){
-    this.velocity = {
-      x: speed / getTime(),
-      y: speed / getTime()
-    };
-  }
-  else{
-    this.velocity = {
-      x: Math.random() - 0.5,
-      y: Math.random() - 0.5
-    };
-  }
-  this.player = player;
   this.speed = speed;
+  this.velocity = {
+    x: Math.random() - 0.5,
+    y: Math.random() - 0.5
+  };
+  this.speedModifyer = 0.5;
+  this.player = player;
+
   this.mass = mass;
   this.radius = radius;
   this.color = color;
+  this.name = name;
+  this.isPush = false;
+  this.lost = false;
 
   this.update = players => {
     this.draw();
-
     for(let i = 0; i < players.length; i++){
       if(this === players[i]) continue;
-      if(getDistance(this.x, this.y, players[i].x, players[i].y) - this.radius * 2 < 0){
+
+      if(getDistance(this.x, this.y, players[i].x, players[i].y) - this.radius * 2 <= 0){
         push(this, players[i]);
-        this.x += this.velocity.x;
-        this.y += this.velocity.y;
       }
+    }
+
+    if(!this.isPush && !this.player) {
+      let enemy = this.findEnemy();
+      this.angle = getAngle(enemy.x, enemy.y, this.x, this.y);
+      this.x += (Math.cos(this.angle) + this.speed) * this.speedModifyer;
+      this.y += (Math.sin(this.angle) + this.speed) * this.speedModifyer;
+    }
+    else if(this.isPush){
       this.x += this.velocity.x;
       this.y += this.velocity.y;
     }
 
+    if(this.x - this.radius <= 0 || this.x + this.radius >= maxCanvasWidth){
+      this.velocity.x = -this.velocity.x;
+    }
+    if(this.y - this.radius <= 0 || this.y + this.radius >= maxCanvasHeight){
+      this.velocity.y = -this.velocity.y;
+    }
   };
   this.draw = function(){
     ctx.fillStyle = this.color;
@@ -106,34 +105,75 @@ function Player(x, y, radius, color, speed, mass, player){
     ctx.closePath();
   };
 
-  if(player){
-    this.newPosition = function(){
-      this.angle += this.rotationAngle * Math.PI / 180;
-      this.x += this.speed * Math.sin(this.angle);
-      this.y -= this.speed * Math.cos(this.angle);
+  this.findEnemy = function(){
+    let enemies = new Array();
+    let minDistance = Infinity;
+    let nearestEnemy = 1;
+
+    for(let i = 0; i < players.length; i++){
+      if(this === players[i]) continue;
+      enemies.push([i, getDistance(this.x, this.y, players[i].x, players[i].y)]);
     }
+
+    for(let i = 0; i < enemies.length; i++){
+      if(enemies[i][1] < minDistance) {
+        minDistance = enemies[i][1];
+        nearestEnemy = enemies[i][0];
+      }
+    }
+
+    return players[nearestEnemy];
+  }
+
+  this.newPosition = function(){
+    this.angle += this.rotationAngle * Math.PI / 180;
+    this.x += this.speed * Math.sin(this.angle);
+    this.y -= this.speed * Math.cos(this.angle);
   }
 }
 
 function Platform(x, y, radius, color){
-  this.update = function(){
-    ctx.fillStyle = color;
+  this.x = x;
+  this.y = y;
+  this.radius = radius;
+  this.color = color;
+  this.velocity ={
+    x: 0,
+    y: 0
+  };
+  this.mass = 10;
+  this.draw = function(){
+    ctx.fillStyle = this.color;
     ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
     ctx.fill();
     ctx.closePath();
   }
 }
 
-//Program the AI
-function artificialIntelligence(players){
-  let minDistance = 9999;
+function checkWinner(){
   for(let i = 0; i < players.length; i++){
-    if(players[i].player) continue;
-    if(getDistance(this.x, this.y, players[i].x, players[i].y) - this.radius * 2 < 0){
-      push(this, players[i]);
+    if(!players[i].lost){
+      if(getDistance(platformObj.x, platformObj.y, players[i].x, players[i].y) > platformObj.radius){
+        players[i].isPush = true;
+        players[i].lost = true;
+        let elimination = setInterval(function () {
+          players[i].radius -= 10;
+          if(players[i].radius <= 1){
+            clearInterval(elimination);
+            players.splice(i, 1);
+          }
+        }, 500);
+      }
     }
   }
+  if(players.length == 1){
+    winner = true;
+    button.style.visibility = "visible"
+    canvas.style.backgroundColor = players[0].color;
+    platformObj.color = players[0].color;
+    ctx.fillStyle = "#337CA0";
+    ctx.font = "50px Arial";
+    ctx.fillText(" The winner is " + players[0].name, 75, 300);
+  }
 }
-
-animate();

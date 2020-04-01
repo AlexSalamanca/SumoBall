@@ -7,17 +7,19 @@ function getTime(){
 
 //Add listerners for the keydown and keyup events
 addEventListener("keydown", function(event){
-  if(event.keyCode == 87){
-    player1.speed = 1;
-  }
-  if(event.keyCode == 83){
-    player1.speed = -1;
-  }
-  if(event.keyCode == 65){
-    player1.rotationAngle = -1;
-  }
-  if(event.keyCode == 68){
-    player1.rotationAngle = 1;
+  if(!player1.isPush){
+    if(event.keyCode == 87){
+      player1.speed = 1;
+    }
+    if(event.keyCode == 83){
+      player1.speed = -1;
+    }
+    if(event.keyCode == 65){
+      player1.rotationAngle = -1;
+    }
+    if(event.keyCode == 68){
+      player1.rotationAngle = 1;
+    }
   }
 });
 
@@ -27,12 +29,16 @@ addEventListener("keyup", function(event){
 });
 //Collision detection
 
-//Detects when two objects collide using the Pythagorean Theorem
+//Get the distance between two points using the Pythagorean Theorem
 function getDistance(x1, y1, x2, y2){
   let xDistance = x2 - x1;
   let yDistance = y2 - y1;
 
   return Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
+}
+
+function getAngle(playerX, playerY, otherPlayerX, otherPlayerY){
+  return Math.atan2(playerY - otherPlayerY, playerX - otherPlayerX);
 }
 
 /*
@@ -94,4 +100,11 @@ function push(player, collidedPlayer) {
     collidedPlayer.velocity.x = finalCollidedPlayerVelocity.x;
     collidedPlayer.velocity.y = finalCollidedPlayerVelocity.y;
   }
+  
+  player.isPush = true;
+  collidedPlayer.isPush = true;
+  setTimeout(function () {
+    player.isPush = false;
+    collidedPlayer.isPush = false;
+  }, 2000);
 }
