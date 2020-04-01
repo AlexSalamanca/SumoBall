@@ -100,11 +100,11 @@ function push(player, collidedPlayer) {
     collidedPlayer.velocity.x = finalCollidedPlayerVelocity.x;
     collidedPlayer.velocity.y = finalCollidedPlayerVelocity.y;
   }
-  
+  //if the player was pushed recently it flags it so it can not keep looking for another player, in other words it allows the bouncing
   player.isPush = true;
   collidedPlayer.isPush = true;
   setTimeout(function () {
     player.isPush = false;
     collidedPlayer.isPush = false;
-  }, 2000);
+  }, 1000);
 }
